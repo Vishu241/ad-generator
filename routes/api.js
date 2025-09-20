@@ -178,7 +178,7 @@ router.post('/summarize', async (req, res) => {
             <h4>🔑 Key Points</h4>
             <ul>${summaryData.keyPoints.map(point => `<li>${point}</li>`).join('')}</ul>
           ` : ''}
-          ${summaryData.ad ? `<div class="ad-highlight">${summaryData.ad}</div>` : ''}
+          ${summaryData.ad ? `<div class="ad-highlight">${summaryData.ad.html || summaryData.ad}</div>` : ''}
         </div>
       `,
       warning: summaryData.error || null
