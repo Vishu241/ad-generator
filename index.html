@@ -231,11 +231,91 @@
                     <h3>👀 Content Preview</h3>
                     <iframe srcdoc="${data.preview.replace(/"/g, '&quot;')}"></iframe>
                 </div>`;
-            } else if (data.summary && typeof data.summary === 'string') {
+            } else if (data.summary) {
                 html += `<div class="content-view">
-                    <h3>📝 AI Summary</h3>
-                    <div>${data.summary}</div>
-                </div>`;
+                    <h3>📝 AI Summary</h3>`;
+                
+                if (typeof data.summary === 'string') {
+                    html += `<div>${data.summary}</div>`;
+                } else if (typeof data.summary === 'object') {
+                    // Handle summary object format
+                    if (data.summary.summary) {
+                        html += `<div>
+                            <h4>📝 Summary</h4>
+                            <p>${data.summary.summary}</p>
+                        </div>`;
+                    }
+                    if (data.summary.keyPoints && Array.isArray(data.summary.keyPoints)) {
+                        html += `<div>
+                            <h4>🔑 Key Points</h4>
+                            <ul>`;
+                        data.summary.keyPoints.forEach(point => {
+                            const pointText = typeof point === 'object' ? JSON.stringify(point) : String(point);
+                            html += `<li>${pointText}</li>`;
+                        });
+                        html += `</ul></div>`;
+                    }
+                    if (data.summary.ad) {
+                        let adHtml = '';
+                        if (typeof data.summary.ad === 'object') {
+                            if (data.summary.ad.html) {
+                                adHtml = data.summary.ad.html;
+                            } else if (data.summary.ad.headline && data.summary.ad.text && data.summary.ad.cta) {
+                                // Build ad HTML from components
+                                adHtml = `
+                                    <div style="margin: 20px 0; padding: 0;">
+                                        <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 18px;">${data.summary.ad.headline}</h4>
+                                        <p style="margin: 0 0 8px 0; color: #374151; line-height: 1.5;">${data.summary.ad.text}</p>
+                                        <p style="margin: 0; color: #667eea; font-weight: 500;">${data.summary.ad.cta}</p>
+                                        <div style="font-size: 11px; margin-top: 5px; color: #9ca3af;">Sponsored</div>
+                                    </div>
+                                `;
+                            } else {
+                                adHtml = JSON.stringify(data.summary.ad);
+                            }
+                        } else {
+                            adHtml = String(data.summary.ad);
+                        }
+                        html += `<div class="ad-highlight">${adHtml}</div>`;
+                    }
+                }
+                
+                // Also handle if summary data is at root level
+                if (data.keyPoints && Array.isArray(data.keyPoints) && !data.summary.keyPoints) {
+                    html += `<div>
+                        <h4>🔑 Key Points</h4>
+                        <ul>`;
+                    data.keyPoints.forEach(point => {
+                        const pointText = typeof point === 'object' ? JSON.stringify(point) : String(point);
+                        html += `<li>${pointText}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+                
+                if (data.ad && !data.summary?.ad) {
+                    let adHtml = '';
+                    if (typeof data.ad === 'object') {
+                        if (data.ad.html) {
+                            adHtml = data.ad.html;
+                        } else if (data.ad.headline && data.ad.text && data.ad.cta) {
+                            // Build ad HTML from components
+                            adHtml = `
+                                <div style="margin: 20px 0; padding: 0;">
+                                    <h4 style="margin: 0 0 8px 0; color: #1e293b; font-size: 18px;">${data.ad.headline}</h4>
+                                    <p style="margin: 0 0 8px 0; color: #374151; line-height: 1.5;">${data.ad.text}</p>
+                                    <p style="margin: 0; color: #667eea; font-weight: 500;">${data.ad.cta}</p>
+                                    <div style="font-size: 11px; margin-top: 5px; color: #9ca3af;">Sponsored</div>
+                                </div>
+                            `;
+                        } else {
+                            adHtml = JSON.stringify(data.ad);
+                        }
+                    } else {
+                        adHtml = String(data.ad);
+                    }
+                    html += `<div class="ad-highlight">${adHtml}</div>`;
+                }
+                html += `</div>`;
             } else {
                 // Fallback for debugging - show the raw data structure
                 html += `<div class="content-view">
