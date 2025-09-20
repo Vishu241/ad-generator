@@ -26,10 +26,18 @@ router.post('/process', async (req, res) => {
     res.json({
       success: true,
       title: scraped.title,
-      originalSections: scraped.content.length,
-      adsInserted: adsResult.ads.length,
-      content: processedContent,
-      aiWorking: adsResult.aiWorking,
+      stats: {
+        originalSections: scraped.content.length,
+        adsInserted: adsResult.ads.length,
+        aiWorking: adsResult.aiWorking ? 'Yes' : 'No'
+      },
+      processedContent: processedContent.map(item => {
+        if (item.isAd) {
+          return `<div class="ad-highlight">${item.html}</div>`;
+        } else {
+          return `<${item.type}>${item.text}</${item.type}>`;
+        }
+      }).join('\n'),
       warning: adsResult.error || null
     });
   } catch (error) {
@@ -72,10 +80,12 @@ router.post('/preview', async (req, res) => {
     res.json({
       success: true,
       title: scraped.title,
-      content: formattedContent,
-      originalSections: scraped.content.length,
-      adsInserted: adsResult.ads.length,
-      aiWorking: adsResult.aiWorking,
+      stats: {
+        originalSections: scraped.content.length,
+        adsInserted: adsResult.ads.length,
+        aiWorking: adsResult.aiWorking ? 'Yes' : 'No'
+      },
+      preview: generatePreviewHTML(scraped.title, processedContent),
       warning: adsResult.error || null
     });
   } catch (error) {
@@ -148,11 +158,22 @@ router.post('/summarize', async (req, res) => {
     res.json({
       success: true,
       title: scraped.title,
-      summary: summaryData.summary,
-      keyPoints: summaryData.keyPoints,
-      ad: summaryData.ad,
-      originalSections: scraped.content.length,
-      aiWorking: summaryData.aiWorking,
+      stats: {
+        originalSections: scraped.content.length,
+        keyPoints: summaryData.keyPoints?.length || 0,
+        aiWorking: summaryData.aiWorking ? 'Yes' : 'No'
+      },
+      summary: `
+        <div class="summary-content">
+          <h4>📝 Summary</h4>
+          <p>${summaryData.summary}</p>
+          ${summaryData.keyPoints ? `
+            <h4>🔑 Key Points</h4>
+            <ul>${summaryData.keyPoints.map(point => `<li>${point}</li>`).join('')}</ul>
+          ` : ''}
+          ${summaryData.ad ? `<div class="ad-highlight">${summaryData.ad}</div>` : ''}
+        </div>
+      `,
       warning: summaryData.error || null
     });
   } catch (error) {
