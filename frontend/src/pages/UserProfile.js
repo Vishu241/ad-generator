@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { searchAPI } from '../services/api';
 import ProductCard from '../components/ProductCard';
 import './UserProfile.css';
@@ -9,12 +9,7 @@ const UserProfile = ({ user, onBack, onProductClick }) => {
   const [currentTab, setCurrentTab] = useState('cart');
   const [loading, setLoading] = useState(true);
 
-  // Load products when component mounts
-  useEffect(() => {
-    loadProducts();
-  }, [user]);
-
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       // Get all products
       const response = await searchAPI.getAllProducts();
@@ -37,7 +32,12 @@ const UserProfile = ({ user, onBack, onProductClick }) => {
       console.error('Error loading products:', error);
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Load products when component mounts
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   if (loading) {
     return (
