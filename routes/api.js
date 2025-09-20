@@ -10,13 +10,20 @@ const router = express.Router();
 router.post('/process', async (req, res) => {
   const { url } = req.body;
   
+  console.log('📥 Process request received:', { url, body: req.body });
+  
   if (!url) {
+    console.log('❌ No URL provided');
     return res.status(400).json({ error: 'URL required' });
   }
   
   try {
+    console.log('🌐 Starting scrape for:', url);
     const scraped = await scrapeContent(url);
+    console.log('📄 Scrape result:', { success: scraped.success, contentLength: scraped.content?.length, error: scraped.error });
+    
     if (!scraped.success) {
+      console.log('❌ Scraping failed:', scraped.error);
       return res.status(400).json({ error: scraped.error });
     }
     

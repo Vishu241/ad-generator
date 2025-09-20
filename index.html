@@ -185,31 +185,62 @@
 
             let html = '';
             
-            if (data.stats) {
+            // Handle stats - check both old and new format
+            const stats = data.stats || {
+                originalSections: data.originalSections || 0,
+                adsInserted: data.adsInserted || 0,
+                aiWorking: data.aiWorking ? 'Yes' : 'No'
+            };
+            
+            if (stats && Object.keys(stats).length > 0) {
                 html += '<div class="stats">';
-                Object.entries(data.stats).forEach(([key, value]) => {
+                Object.entries(stats).forEach(([key, value]) => {
+                    // Ensure value is not an object
+                    const displayValue = typeof value === 'object' ? JSON.stringify(value) : String(value);
                     html += `<div class="stat">
                         <div class="stat-label">${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</div>
-                        <div class="stat-value">${value}</div>
+                        <div class="stat-value">${displayValue}</div>
                     </div>`;
                 });
                 html += '</div>';
             }
 
-            if (data.processedContent) {
+            // Handle content - check both old and new format
+            if (data.processedContent && typeof data.processedContent === 'string') {
                 html += `<div class="content-view">
                     <h3>📄 Processed Content with AI-Generated Ads</h3>
                     <div>${data.processedContent}</div>
                 </div>`;
-            } else if (data.preview) {
+            } else if (data.content && Array.isArray(data.content)) {
+                // Handle old format - convert array to HTML
+                html += `<div class="content-view">
+                    <h3>📄 Processed Content with AI-Generated Ads</h3>
+                    <div>`;
+                data.content.forEach(item => {
+                    if (item && typeof item === 'object') {
+                        if (item.isAd && item.html) {
+                            html += `<div class="ad-highlight">${item.html}</div>`;
+                        } else if (item.type && item.text) {
+                            html += `<${item.type}>${item.text}</${item.type}>`;
+                        }
+                    }
+                });
+                html += `</div></div>`;
+            } else if (data.preview && typeof data.preview === 'string') {
                 html += `<div class="content-view">
                     <h3>👀 Content Preview</h3>
                     <iframe srcdoc="${data.preview.replace(/"/g, '&quot;')}"></iframe>
                 </div>`;
-            } else if (data.summary) {
+            } else if (data.summary && typeof data.summary === 'string') {
                 html += `<div class="content-view">
                     <h3>📝 AI Summary</h3>
                     <div>${data.summary}</div>
+                </div>`;
+            } else {
+                // Fallback for debugging - show the raw data structure
+                html += `<div class="content-view">
+                    <h3>🔍 Debug: Raw Response Data</h3>
+                    <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px;">${JSON.stringify(data, null, 2)}</pre>
                 </div>`;
             }
 
