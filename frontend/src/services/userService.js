@@ -1,5 +1,5 @@
 // User service with MongoDB backend and localStorage session
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 const USER_ID_KEY = 'smartshop_user_id';
 
 // Store only user ID in localStorage
